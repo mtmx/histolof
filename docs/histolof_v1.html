@@ -4,7 +4,7 @@
       <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>D3 Page Template</title>
+        <title>LOF</title>
         <script src="https://d3js.org/d3.v6.js"></script>
         <link rel="stylesheet" href="style.css">
     </head>
@@ -16,20 +16,6 @@
     <!-- Create a div where the graph will take place -->
     <div id="my_dataviz"></div>
     <script>
-
-
-      // format année
-    //   const formatYear = d3.timeFormat("%Y");
-    //   const parseYear = d3.timeParse("%Y");
-
-
-    //   var locale = d3.formatLocale({
-    //         decimal: ",",
-    //         thousands: ",",
-    //         grouping: [3]
-    //         });
-
-    //   var format3 = locale.format(",.3f");
 
 
       // set the dimensions and margins of the graph
@@ -48,21 +34,12 @@
            "translate(" + margin.left + "," + margin.top + ")");
       
 
-          // Set the ranges
-        // const x = d3.scaleLinear().domain([1980, 2020])
-        // var y = d3.scaleLinear().range([height, 0]);
-
-
       //Read the data
       d3.csv("data/lof_full_1970_2022.csv").then( function(data) {
-      
-               
 
           // List of groups (here I have one group per column)
           const allGroup = new Set(data.map(d => d.race))
-      
-          // domaine x et y
-        //   x.domain([1980,2020]);
+
 
           // add the options to the button
           d3.select("#selectButton")
