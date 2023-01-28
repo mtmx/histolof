@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+      <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>D3 Page Template</title>
+        <script src="https://d3js.org/d3.v6.js"></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+  <body>
+    <!-- Initialize a select button -->
+    <select id="selectButton"></select>
+
+    <!-- Create a div where the graph will take place -->
+    <div id="my_dataviz"></div>
+    <script>
+
+
+      // format année
+    //   const formatYear = d3.timeFormat("%Y");
+    //   const parseYear = d3.timeParse("%Y");
+
+
+    //   var locale = d3.formatLocale({
+    //         decimal: ",",
+    //         thousands: ",",
+    //         grouping: [3]
+    //         });
+
+    //   var format3 = locale.format(",.3f");
+
+
+      // set the dimensions and margins of the graph
+      const margin = {top: 10, right: 30, bottom: 30, left: 60},
+          width = 560 - margin.left - margin.right,
+          height = 400 - margin.top - margin.bottom;
+      
+      // append the svg object to the body of the page
+      const svg = d3.select("#my_dataviz")
+        .append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+          .attr("transform",
+          //  `translate(${margin.left}, ${margin.top})`);
+           "translate(" + margin.left + "," + margin.top + ")");
+      
+
+          // Set the ranges
+        // const x = d3.scaleLinear().domain([1980, 2020])
+        // var y = d3.scaleLinear().range([height, 0]);
+
+
+      //Read the data
+      d3.csv("data/lof_full_1970_2022.csv").then( function(data) {
+      
+               
+
+          // List of groups (here I have one group per column)
+          const allGroup = new Set(data.map(d => d.race))
+      
+          // domaine x et y
+        //   x.domain([1980,2020]);
+
+          // add the options to the button
+          d3.select("#selectButton")
+            .selectAll('myOptions')
+               .data(allGroup)
+            .enter()
+              .append('option')
+            .text(function (d) { return d; }) // text showed in the menu
+            .attr("value", function (d) { return d; }) // corresponding value returned by the button
+      
+          // A color scale: one color for each group
+          const myColor = d3.scaleOrdinal()
+            .domain(allGroup)
+            .range(d3.schemeSet2);
+      
+          // Initialise a X axis:
+            const x = d3.scaleLinear().range([0,width]);
+            const xAxis = d3.axisBottom().scale(x)// format numérique sans séparateur
+            .tickFormat(d3.format("d"));
+            svg.append("g")
+              .attr("transform", `translate(0, ${height})`)
+              .attr("class","myXaxis")
+      
+          // Initialise a Y axis:
+          const y = d3.scaleLinear().range([height, 0]);
+          const yAxis = d3.axisLeft().scale(y);
+          svg.append("g")
+            .attr("class","myYaxis")
+
+
+
+
+  // Create the X axis:
+  x.domain([d3.min(data, function(d) { return d.annee }), d3.max(data, function(d) { return d.annee }) ]);
+  svg.selectAll(".myXaxis").transition()
+    // .duration(3000)
+    .call(xAxis);
+
+
+  // create the Y axis
+  y.domain([0, 100]);
+  svg.selectAll(".myYaxis")
+    .transition()
+    // .duration(3000)
+    .call(yAxis);
+
+
+ // This allows to find the closest X index of the mouse:
+ var bisect = d3.bisector(function(d) { return d.x; }).left;
+
+  // Create the circle that travels along the curve of chart
+  var focus = svg
+    .append('g')
+    .append('circle')
+      .style("fill", "none")
+      .attr("stroke", "black")
+      .attr('r', 8.5)
+      .style("opacity", 0)
+
+  // Create the text that travels along the curve of chart
+  var focusText = svg
+    .append('g')
+    .append('text')
+      .style("opacity", 0)
+      .attr("text-anchor", "left")
+      .attr("alignment-baseline", "middle")
+      
+
+
+      
+          // Initialize line with first group of the list
+          const line = svg
+            .append('g')
+            .append("path")
+              .datum(data.filter(function(d){return d.race=="AFFENPINSCHER"}))
+              .attr("d", d3.line()
+                .x(function(d) { return x(d.annee) })
+                .y(function(d) { return y(+d.nb) })
+              )
+              .attr("stroke", function(d){ return myColor("valueA") })
+              .style("stroke-width", 4)
+              // ajouter de l'area sous la ligne
+              .attr("fill", function(d){ return myColor("valueA") })
+            //   .style("fill", "none")
+              .attr("d", d3.area()
+                .x(d => x(d.annee))
+                .y0(y(0))
+                .y1(d => y(d.nb))
+                    )
+      
+          // A function that update the chart
+          function update(selectedGroup) {
+      
+            // Create new data with the selection?
+            const dataFilter = data.filter(function(d){return d.race==selectedGroup})
+
+             // Create the X axis:
+            x.domain([1970,2022]);
+            svg.selectAll(".myXaxis").transition()
+              .duration(3000)
+              .call(xAxis);
+
+
+            // create the Y axis
+            y.domain([0, d3.max(dataFilter, function(d) { return +d.nb +100 }) ]);
+            svg.selectAll(".myYaxis")
+              .transition()
+              .duration(3000)
+              .call(yAxis);
+      
+            // Give these new data to update line
+            line
+                .datum(dataFilter)
+                .transition()
+                .duration(1000)
+                .attr("d", d3.line()
+                  .x(function(d) { return x(d.annee) })
+                  .y(function(d) { return y(+d.nb) })
+                )
+                .attr("stroke", function(d){ return myColor(selectedGroup) })
+                // ajouter de l'area sous la ligne
+                .attr("fill", function(d){ return myColor(selectedGroup) })
+                .attr("d", d3.area()
+                .x(d => x(d.annee))
+                .y0(y(0))
+                .y1(d => y(d.nb))
+                        )
+                
+          }
+      
+          // When the button is changed, run the updateChart function
+          d3.select("#selectButton").on("change", function(event,d) {
+              // recover the option that has been chosen
+              const selectedOption = d3.select(this).property("value")
+              // run the updateChart function with this selected option
+              update(selectedOption)
+          })
+
+      
+      })
+      </script>
+  </body>
+
+</html>
+
+
