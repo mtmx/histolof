@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+      <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>LOF</title>
+        <script src="https://d3js.org/d3.v6.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-js"></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+  <body>
+    <!-- Initialize a select button -->
+    <div id="selectButton"></div>
+    <!-- Create a div where the graph will take place -->
+    <script>
+
+   //Variable to hold autocomplete options
+   var allGroup;
+
+d3.csv("data/lof_full_1970_2022.csv").then( function(data) {
+
+// List of groups (here I have one group per column)
+const allGroup = new Set(data.map(d => d.race))
+start();
+});
+
+//Call back for when user selects an option
+function onSelect(d) {
+    alert(d.race);
+}
+
+//Setup and render the autocomplete
+function start() {
+    var mc = autocomplete(document.getElementById('test'))
+            .keys(allGroup)
+            .dataField("State")
+            .placeHolder("Search States - Start typing here")
+            .width(960)
+            .height(500)
+            .onSelected(onSelect)
+            .render();
+}
+
+
+      </script>
+  </body>
+
+</html>
+
+

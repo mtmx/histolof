@@ -15,6 +15,7 @@
 
     <!-- Create a div where the graph will take place -->
     <div id="my_dataviz"></div>
+
     <script>
 
 
@@ -33,6 +34,7 @@
           //  `translate(${margin.left}, ${margin.top})`);
            "translate(" + margin.left + "," + margin.top + ")");
       
+
 
       //Read the data
       d3.csv("data/lof_full_1970_2022_nomSCC.csv").then( function(data) {
@@ -72,41 +74,20 @@
 
 
 
-  // Create the X axis:
-  x.domain([d3.min(data, function(d) { return d.annee }), d3.max(data, function(d) { return d.annee }) ]);
-  svg.selectAll(".myXaxis").transition()
-    // .duration(3000)
-    .call(xAxis);
+          // Create the X axis:
+          x.domain([d3.min(data, function(d) { return d.annee }), d3.max(data, function(d) { return d.annee }) ]);
+          svg.selectAll(".myXaxis").transition()
+            // .duration(3000)
+            .call(xAxis);
 
 
-  // create the Y axis
-  y.domain([0, 17000]);
-  svg.selectAll(".myYaxis")
-    .transition()
-    // .duration(3000)
-    .call(yAxis);
+          // create the Y axis
+          y.domain([0, 17000]);
+          svg.selectAll(".myYaxis")
+            .transition()
+            // .duration(3000)
+            .call(yAxis);
 
-
- // This allows to find the closest X index of the mouse:
- var bisect = d3.bisector(function(d) { return d.x; }).left;
-
-  // Create the circle that travels along the curve of chart
-  var focus = svg
-    .append('g')
-    .append('circle')
-      .style("fill", "none")
-      .attr("stroke", "black")
-      .attr('r', 8.5)
-      .style("opacity", 0)
-
-  // Create the text that travels along the curve of chart
-  var focusText = svg
-    .append('g')
-    .append('text')
-      .style("opacity", 0)
-      .attr("text-anchor", "left")
-      .attr("alignment-baseline", "middle")
-      
 
 
       
@@ -115,7 +96,7 @@
             .append('g')
             .append("path")
               .datum(data.filter(function(d){return d.race=="Berger allemand"}))
-              .attr("d", d3.line()
+              .attr("d", d3.line().curve(d3.curveNatural)
                 .x(function(d) { return x(d.annee) })
                 .y(function(d) { return y(+d.nb) })
               )
@@ -124,11 +105,21 @@
               // ajouter de l'area sous la ligne
               .attr("fill", function(d){ return myColor("valueA") })
             //   .style("fill", "none")
-              .attr("d", d3.area()
+              .attr("d", d3.area().curve(d3.curveNatural)
                 .x(d => x(d.annee))
                 .y0(y(0))
                 .y1(d => y(d.nb))
                     )
+
+            
+          const imgs = svg.selectAll("my_dataviz").data([0]);
+            imgs.enter()
+            .append("svg:image")
+                .attr("xlink:href", "img/Akita.png")
+                .attr("x", "10")
+                .attr("y", "10")
+                .attr("width", "50")
+                .attr("height", "50");
       
           // A function that update the chart
           function update(selectedGroup) {
@@ -155,14 +146,14 @@
                 .datum(dataFilter)
                 .transition()
                 .duration(1000)
-                .attr("d", d3.line()
+                .attr("d", d3.line().curve(d3.curveNatural)
                   .x(function(d) { return x(d.annee) })
                   .y(function(d) { return y(+d.nb) })
                 )
                 .attr("stroke", function(d){ return myColor(selectedGroup) })
                 // ajouter de l'area sous la ligne
                 .attr("fill", function(d){ return myColor(selectedGroup) })
-                .attr("d", d3.area()
+                .attr("d", d3.area().curve(d3.curveNatural)
                 .x(d => x(d.annee))
                 .y0(y(0))
                 .y1(d => y(d.nb))
