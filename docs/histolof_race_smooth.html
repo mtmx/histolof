@@ -35,7 +35,7 @@
       
 
       //Read the data
-      d3.csv("data/lof_full_1970_2022_nomSCC.csv").then( function(data) {
+      d3.csv("data/lof_full_1970_2023_nomSCC.csv").then( function(data) {
 
           // List of groups (here I have one group per column)
           const allGroup = new Set(data.map(d => d.race))
@@ -108,8 +108,6 @@
       .attr("alignment-baseline", "middle")
       
 
-
-      
           // Initialize line with first group of the list
           const curve = d3.line().curve(d3.curveNatural);
           
@@ -139,7 +137,7 @@
             const dataFilter = data.filter(function(d){return d.race==selectedGroup})
 
              // Create the X axis:
-            x.domain([1970,2022]);
+            x.domain([1970,2023]);
             svg.selectAll(".myXaxis").transition()
               .duration(3000)
               .call(xAxis);
