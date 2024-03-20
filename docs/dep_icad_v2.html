@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="main.css">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+<body>
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <script> 
+  /*
+https://gist.github.com/lilyli/e50c033f483d05fc497b6f24a2f12284?short_path=3a2ad1e
+*/
+
+  
+var width = 1200;
+var height = 500;
+
+// create color scale
+const color = d3.scaleLinear()
+  .domain([0,0.01, 0.01, 0.02, 0.06, 0.08, 0.1])
+  .range(["white", "#def5e5", "#8ad9b1" ,"#3fb7ad", "#348fa7", "#37659e", "#423c7b", "#2e1d3c", "#0c0304"]);
+
+
+// us map projection
+const projection = d3.geoConicConformal()
+        .translate([width / 2, height / 2])
+        .center([3.5, 46.2])
+        .scale(2200);
+
+var path = d3.geoPath()
+  .projection(projection);
+
+// specify inital selected variable in dropdown menu
+var selectedVariable = 'nb_beagle'
+
+// create svg element and append map
+var svg = d3.select('body')
+  .append('svg')
+  .attr('width', width)
+  .attr('height', height);
+
+// create tooltip
+var div = d3.select('body').append('div')
+    .attr('class', 'tooltip')
+    .attr('opacity', 0);
+
+// load us states geojson data and merge with states data
+d3.csv('./data/cpt_scc_parc_dep_race.stats_hundexp_tr.csv', function(data) {
+  d3.json('./data/geo_deps.geojson', function(json) {
+    for (var i = 0; i < data.length; i++) {
+      var state = data[i].departement;
+      var nb_beagle = data[i].nb_beagle;
+      var nb_berger_allemand = data[i].nb_berger_allemand;
+      var nb_berger_australien = data[i].nb_berger_australien;
+      var nb_berger_blanc_suisse = data[i].nb_berger_blanc_suisse;
+      var nb_berger_de_beauce = data[i].nb_berger_de_beauce;
+      var nb_bichon_a_poil_frise = data[i].nb_bichon_a_poil_frise;
+      var nb_bichon_maltais = data[i].nb_bichon_maltais;
+      var nb_border_collie = data[i].nb_border_collie;
+      var nb_bouledogue_francais = data[i].nb_bouledogue_francais;
+      var nb_bouvier_bernois = data[i].nb_bouvier_bernois;
+      var nb_boxer = data[i].nb_boxer;
+      var nb_braque_allemand_a_poil_court = data[i].nb_braque_allemand_a_poil_court;
+      var nb_bulldog = data[i].nb_bulldog;
+      var nb_caniche = data[i].nb_caniche;
+      var nb_carlin = data[i].nb_carlin;
+      var nb_cavalier_king_charles = data[i].nb_cavalier_king_charles;
+      var nb_chien_de_berger_belge = data[i].nb_chien_de_berger_belge;
+      var nb_chien_de_cour_italien = data[i].nb_chien_de_cour_italien;
+      var nb_chihuahua = data[i].nb_chihuahua;
+      var nb_cocker_spaniel_anglais = data[i].nb_cocker_spaniel_anglais;
+      var nb_coton_de_tulear = data[i].nb_coton_de_tulear;
+      var nb_english_springer_spaniel = data[i].nb_english_springer_spaniel;
+      var nb_epagneul_breton = data[i].nb_epagneul_breton;
+      var nb_fox_terrier_poil_dur = data[i].nb_fox_terrier_poil_dur;
+      var nb_golden_retriever = data[i].nb_golden_retriever;
+      var nb_griffon_a_poil_dur_korthals = data[i].nb_griffon_a_poil_dur_korthals;
+      var nb_husky_de_siberie = data[i].nb_husky_de_siberie;
+      var nb_lhassa_apso = data[i].nb_lhassa_apso;
+      var nb_pinscher_nain = data[i].nb_pinscher_nain;
+      var nb_retriever_du_labrador = data[i].nb_retriever_du_labrador;
+      var nb_rottweiler = data[i].nb_rottweiler;
+      var nb_setter_anglais = data[i].nb_setter_anglais;
+      var nb_shih_tzu = data[i].nb_shih_tzu;
+      var nb_spitz_allemand = data[i].nb_spitz_allemand;
+      var nb_staffordshire_bull_terrier = data[i].nb_staffordshire_bull_terrier;
+      var nb_staffordshire_terrier_americain = data[i].nb_staffordshire_terrier_americain;
+      var nb_teckel = data[i].nb_teckel;
+      var nb_terrier_de_chasse_allemand = data[i].nb_terrier_de_chasse_allemand;
+      var nb_terrier_jack_russell = data[i].nb_terrier_jack_russell;
+      var nb_west_highland_white_terrier = data[i].nb_west_highland_white_terrier;
+      var nb_yorkshire_terrier = data[i].nb_yorkshire_terrier;
+
+
+      for (var j = 0; j < json.features.length; j++) {
+        var jsonState = json.features[j].properties.DEP;
+        if (state == jsonState) {
+          json.features[j].properties.nb_beagle = nb_beagle;
+          json.features[j].properties.nb_berger_allemand = nb_berger_allemand;
+          json.features[j].properties.nb_berger_australien = nb_berger_australien;
+          json.features[j].properties.nb_berger_blanc_suisse = nb_berger_blanc_suisse;
+          json.features[j].properties.nb_berger_de_beauce = nb_berger_de_beauce;
+          json.features[j].properties.nb_bichon_a_poil_frise = nb_bichon_a_poil_frise;
+          json.features[j].properties.nb_bichon_maltais = nb_bichon_maltais;
+          json.features[j].properties.nb_border_collie = nb_border_collie;
+          json.features[j].properties.nb_bouledogue_francais = nb_bouledogue_francais;
+          json.features[j].properties.nb_bouvier_bernois = nb_bouvier_bernois;
+          json.features[j].properties.nb_boxer = nb_boxer;
+          json.features[j].properties.nb_braque_allemand_a_poil_court = nb_braque_allemand_a_poil_court;
+          json.features[j].properties.nb_bulldog = nb_bulldog;
+          json.features[j].properties.nb_caniche = nb_caniche;
+          json.features[j].properties.nb_carlin = nb_carlin;
+          json.features[j].properties.nb_cavalier_king_charles = nb_cavalier_king_charles;
+          json.features[j].properties.nb_chien_de_berger_belge = nb_chien_de_berger_belge;
+          json.features[j].properties.nb_chien_de_cour_italien = nb_chien_de_cour_italien;
+          json.features[j].properties.nb_chihuahua = nb_chihuahua;
+          json.features[j].properties.nb_cocker_spaniel_anglais = nb_cocker_spaniel_anglais;
+          json.features[j].properties.nb_coton_de_tulear = nb_coton_de_tulear;
+          json.features[j].properties.nb_english_springer_spaniel = nb_english_springer_spaniel;
+          json.features[j].properties.nb_epagneul_breton = nb_epagneul_breton;
+          json.features[j].properties.nb_fox_terrier_poil_dur = nb_fox_terrier_poil_dur;
+          json.features[j].properties.nb_golden_retriever = nb_golden_retriever;
+          json.features[j].properties.nb_griffon_a_poil_dur_korthals = nb_griffon_a_poil_dur_korthals;
+          json.features[j].properties.nb_husky_de_siberie = nb_husky_de_siberie;
+          json.features[j].properties.nb_lhassa_apso = nb_lhassa_apso;
+          json.features[j].properties.nb_pinscher_nain = nb_pinscher_nain;
+          json.features[j].properties.nb_retriever_du_labrador = nb_retriever_du_labrador;
+          json.features[j].properties.nb_rottweiler = nb_rottweiler;
+          json.features[j].properties.nb_setter_anglais = nb_setter_anglais;
+          json.features[j].properties.nb_shih_tzu = nb_shih_tzu;
+          json.features[j].properties.nb_spitz_allemand = nb_spitz_allemand;
+          json.features[j].properties.nb_staffordshire_bull_terrier = nb_staffordshire_bull_terrier;
+          json.features[j].properties.nb_staffordshire_terrier_americain = nb_staffordshire_terrier_americain;
+          json.features[j].properties.nb_teckel = nb_teckel;
+          json.features[j].properties.nb_terrier_de_chasse_allemand = nb_terrier_de_chasse_allemand;
+          json.features[j].properties.nb_terrier_jack_russell = nb_terrier_jack_russell;
+          json.features[j].properties.nb_west_highland_white_terrier = nb_west_highland_white_terrier;
+          json.features[j].properties.nb_yorkshire_terrier = nb_yorkshire_terrier;
+
+          break;
+        }
+      }
+    }
+
+    map = svg.selectAll('path')
+      .data(json.features)
+      .enter()
+      .append('path')
+      .attr('d', path)
+      .attr('stroke', '#d0d1e6')
+      .attr('stroke-width', '0.5')
+      .attr('fill', function(d) { return color(d.properties[selectedVariable]) })
+      .call(updateMap)
+      .on('mouseover', function(d) {
+        div.style('display', 'inline');
+      })
+      .on('mousemove', function(d) {
+        div.html(d.properties.NOM_DEP + '<br>' )
+        .style('left', (d3.event.pageX - (parseInt(div.style('width'), 10) / 2)) + 'px')
+        .style('top', (d3.event.pageY - parseInt(div.style('height'), 10) - 10) + 'px');
+      })
+      .on('mouseout', function(d) {
+        div.style('display', 'none');
+      });
+  });
+});
+
+// create dropdown menu that changes map
+// create dropdown menu options and map options to variable names in data
+var dropdownOptions = ['Beagle',
+'Berger allemand',
+'Berger australien',
+'Berger blanc suisse',
+'Berger de beauce',
+'Bichon a poil frise',
+'Bichon maltais',
+'Border collie',
+'Bouledogue francais',
+'Bouvier bernois',
+'Boxer',
+'Braque allemand a poil court',
+'Bulldog',
+'Caniche',
+'Carlin',
+'Cavalier king charles',
+'Chien de berger belge',
+'Chien de cour italien',
+'Chihuahua',
+'Cocker spaniel anglais',
+'Coton de tulear',
+'English springer spaniel',
+'Epagneul breton',
+'Fox terrier poil dur',
+'Golden retriever',
+'Griffon a poil dur korthals',
+'Husky de siberie',
+'Lhassa apso',
+'Pinscher nain',
+'Retriever du labrador',
+'Rottweiler',
+'Setter anglais',
+'Shih tzu',
+'Spitz allemand',
+'Staffordshire bull terrier',
+'Staffordshire terrier americain',
+'Teckel',
+'Terrier de chasse allemand',
+'Terrier jack russell',
+'West highland white terrier',
+'Yorkshire terrier',
+];
+var variableNames = {'Beagle' : 'nb_beagle',
+'Berger allemand' : 'nb_berger_allemand',
+'Berger australien' : 'nb_berger_australien',
+'Berger blanc suisse' : 'nb_berger_blanc_suisse',
+'Berger de beauce' : 'nb_berger_de_beauce',
+'Bichon a poil frise' : 'nb_bichon_a_poil_frise',
+'Bichon maltais' : 'nb_bichon_maltais',
+'Border collie' : 'nb_border_collie',
+'Bouledogue francais' : 'nb_bouledogue_francais',
+'Bouvier bernois' : 'nb_bouvier_bernois',
+'Boxer' : 'nb_boxer',
+'Braque allemand a poil court' : 'nb_braque_allemand_a_poil_court',
+'Bulldog' : 'nb_bulldog',
+'Caniche' : 'nb_caniche',
+'Carlin' : 'nb_carlin',
+'Cavalier king charles' : 'nb_cavalier_king_charles',
+'Chien de berger belge' : 'nb_chien_de_berger_belge',
+'Chien de cour italien' : 'nb_chien_de_cour_italien',
+'Chihuahua' : 'nb_chihuahua',
+'Cocker spaniel anglais' : 'nb_cocker_spaniel_anglais',
+'Coton de tulear' : 'nb_coton_de_tulear',
+'English springer spaniel' : 'nb_english_springer_spaniel',
+'Epagneul breton' : 'nb_epagneul_breton',
+'Fox terrier poil dur' : 'nb_fox_terrier_poil_dur',
+'Golden retriever' : 'nb_golden_retriever',
+'Griffon a poil dur korthals' : 'nb_griffon_a_poil_dur_korthals',
+'Husky de siberie' : 'nb_husky_de_siberie',
+'Lhassa apso' : 'nb_lhassa_apso',
+'Pinscher nain' : 'nb_pinscher_nain',
+'Retriever du labrador' : 'nb_retriever_du_labrador',
+'Rottweiler' : 'nb_rottweiler',
+'Setter anglais' : 'nb_setter_anglais',
+'Shih tzu' : 'nb_shih_tzu',
+'Spitz allemand' : 'nb_spitz_allemand',
+'Staffordshire bull terrier' : 'nb_staffordshire_bull_terrier',
+'Staffordshire terrier americain' : 'nb_staffordshire_terrier_americain',
+'Teckel' : 'nb_teckel',
+'Terrier de chasse allemand' : 'nb_terrier_de_chasse_allemand',
+'Terrier jack russell' : 'nb_terrier_jack_russell',
+'West highland white terrier' : 'nb_west_highland_white_terrier',
+'Yorkshire terrier' : 'nb_yorkshire_terrier',
+};
+
+// handler for user selections in dropdown
+var dropdownChange = function() {
+    var variable = d3.select(this).property('value')
+    selectedVariable = variableNames[variable]
+    map.call(updateMap)
+};
+
+var dropdown = d3.select('body')
+  .insert('select', 'svg')
+  .on('change', dropdownChange);
+
+dropdown.selectAll('option')
+  .data(dropdownOptions)
+  .enter().append('option')
+  .attr('value', function (d) { return d; })
+  .text(function (d) { return d; });
+
+function updateMap(selection) {
+  selection.transition()
+    .duration(500)
+    .attr('fill', function(d) { return color(d.properties[selectedVariable]) })
+};
+
+const legendRectSize = 10;
+const legendSpacing = 10;
+
+var legend = svg.append('g')
+  .selectAll('g')
+  .data(color.domain().reverse() )
+  .enter()
+  .append('g')
+    .attr('class', 'legend')
+    .attr('transform', function(d, i) {
+      var height = legendRectSize;
+      var x = 0;
+      var y = i * height;
+      return 'translate(' + 450 + ',' + y + ')';
+    });
+
+legend.append('rect')
+  .attr('width', legendRectSize)
+  .attr('height', legendRectSize)
+  .attr('fill', color)
+  .attr('stroke', '#d0d1e6')
+  .attr('stroke-width', '1')
+
+legend.append('text')
+  .attr('x', legendRectSize + legendSpacing)
+  .attr('y', legendRectSize - legendSpacing)
+  .text(function(d) { return d; });
+
+  </script>
+</body>
+</html>

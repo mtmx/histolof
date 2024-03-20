@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<head>
+    
+    <meta charset="utf-8">
+
+    <style>
+
+        #tooltip {
+            font-family: sans-serif;
+            color: #454545;
+        }
+
+        #dropdown {
+            margin-bottom: 20px;
+            margin-right: 35px;
+        }
+
+        h3, h5 {
+            margin: 0;
+        }
+
+        
+    </style>    
+    
+    <script src = "https://d3js.org/d3.v4.js"></script>
+    <script src = "./js/viridis_colors.js"></script> 
+    <script src = "./js/dropdown_options.js"></script> 
+
+</head>
+<body>
+
+    <!-- dropdown -->
+    <select id="dropdown"></select>
+
+    <!-- neighborhood and its value -->
+    <div id = "tooltip">
+        <h3><span id = "neighborhood">&nbsp;</span></h3>
+        <h5><span id = "datum">&nbsp;</span></h5>
+    </div>
+
+    <!-- map -->
+    <div id="block"></div>
+    
+    <script>
+
+        // populate drop-down
+        d3.select("#dropdown")
+          .selectAll("option")
+          .data(dropdown_options)
+          .enter()
+          .append("option")
+          .attr("value", function(option) { return option.value; })
+          .text(function(option) { return option.text; });
+
+        // initial dataset on load
+        var selected_dataset = "nb_beagle";
+
+        var w = 700,
+            h = 600;
+
+        var svg = d3.select("#block")
+                    .append("svg")
+                    .attr("height", h)
+                    .attr("width", w);
+
+
+        var projection = d3.geoConicConformal()
+                .translate([w / 2, h / 2])
+                .center([3.5, 46.2])
+                .scale(2600);
+                           
+        var path = d3.geoPath()
+                     .projection(projection);
+
+        var format = d3.format(".1f")
+
+        // first of two scales for linear fill; ref [1]
+   /*     var fill_viridis = d3.scaleLinear()
+                             .domain(d3.range(0, 0.01, 0.1   / (viridis_colors.length - 0.01)))
+                             .range(viridis_colors);
+                             */
+        var fill_viridis = d3.scaleLinear()
+        .domain([0,0.001, 0.01, 0.02, 0.06, 0.08, 0.1])
+        .range(["white", "#def5e5", "#8ad9b1" ,"#3fb7ad", "#348fa7", "#37659e", "#423c7b", "#2e1d3c", "#0c0304"]);
+
+
+        // second of two scales for linear fill 
+    /*    var norm_fill = d3.scaleLinear()
+                          .range([0,0.1]);
+*/
+        var geojson = "./data/geo_deps_data_2.geojson";
+
+        d3.json(geojson, function(json) {
+
+            plot = svg.selectAll("path")
+                      .data(json.features)
+                      .enter()
+                      .append("path")
+                      .attr("d", path)
+                      /*.attr("stroke", "#808080")*/
+                      .attr('stroke', '#d0d1e6')
+                      .attr('stroke-width', '0.5')
+                      .attr("fill", "#b3b3b3")
+                      .call(updateFill, selected_dataset)
+                      .on("mouseover", function(d) { displayData(d); })
+                      .on("mouseout", hideData);
+        });
+
+        // dropdown dataset selection
+        var dropDown = d3.select("#dropdown");
+
+        dropDown.on("change", function() {
+
+            checked = true;
+
+            selected_dataset = d3.event.target.value;
+
+            plot.call(updateFill, selected_dataset)
+
+        });
+
+        // checkbox to include/exclude downtown
+ 
+
+        function displayData(d) {
+
+            d3.select("#neighborhood")
+               .text(d.properties.NOM_DEP)
+
+            d3.select("#datum")
+              .text(format(d.properties[selected_dataset] *100)+ "%");
+        }
+
+        function hideData() {
+
+            d3.select("#neighborhood")
+              .text("\u00A0");
+
+            d3.select("#datum")
+              .text("\u00A0");
+        }
+
+        function updateFill(selection, selected_dataset) {
+
+            var d_extent = d3.extent(selection.data(), function(d) {
+                return parseFloat(d.properties[selected_dataset]);
+            });
+
+            rescaleFill(selection, d_extent);
+        }
+
+        
+
+        function rescaleFill(selection, d_extent) {
+
+         /*   norm_fill.domain(d_extent) */
+
+            selection.transition()
+                     .duration(700)
+                     .attr("fill", function(d) {
+                          var datum = parseFloat(d.properties[selected_dataset]);
+                          /*return fill_viridis(norm_fill(datum));*/
+                          return fill_viridis(datum);
+                     });
+        }
+
+    // references
+    // [1] http://stackoverflow.com/questions/17671252/d3-create-a-continous-color-scale-with-many-strings-inputs-for-the-range-and-dy
+const legendRectSize = 16;
+const legendSpacing = 2;
+
+var legend = svg.append('g')
+  .selectAll('g')
+  .data(fill_viridis.domain().reverse() )
+  .enter()
+  .append('g')
+    .attr('class', 'legend')
+    .attr('transform', function(d, i) {
+      var height = legendRectSize;
+      var x = 0;
+      var y = (i * height)+40;
+      return 'translate(' + 15 + ',' + y + ')';
+    });
+
+legend.append('rect')
+  .attr('width', legendRectSize)
+  .attr('height', legendRectSize)
+  .attr('fill', fill_viridis)
+  .attr('stroke', '#d0d1e6')
+  .attr('stroke-width', '1')
+
+legend.append('text')
+.style("font-size", "13px")
+.style("font-family", "Roboto")
+  .attr('x', legendRectSize + legendSpacing)
+  .attr('y', legendRectSize - legendSpacing)
+  .text(function(d) { return format(d*100)+ "%"; });
+    </script>
+</body>
